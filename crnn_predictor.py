@@ -10,7 +10,8 @@ import argparse
 from mxnet_predict import Predictor
 import mxnet as mx
 
-from symbol.crnn import crnn
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/symbol')
+from crnn import crnn
 
 import numpy as np
 import cv2
