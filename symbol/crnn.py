@@ -39,7 +39,7 @@ def lstm(num_hidden, indata, prev_state, param, seqidx, layeridx, dropout=0.):
 
 
 def crnn(num_lstm_layer, seq_len, num_hidden, num_classes, num_label, dropout=0.):
-    
+
     last_states = []
     forward_param = []
     backward_param = []
@@ -96,10 +96,10 @@ def crnn(num_lstm_layer, seq_len, num_hidden, num_classes, num_label, dropout=0.
     conv4_1 = mx.symbol.Convolution(
         data=pool3, kernel=(3, 3), pad=(1, 1), num_filter=512, name="conv4_1")
     batchnorm2 = mx.symbol.BatchNorm(data= conv4_1, name="batchnorm2")
-    relu4_1 = mx.symbol.Activation(data=batchnorm2, act_type="relu", name="relu4_1")
-    conv4_2 = mx.symbol.Convolution(
-        data=batchnorm1, kernel=(3, 3), pad=(1, 1), num_filter=512, name="conv4_2")
-    relu4_2 = mx.symbol.Activation(data=conv4_2, act_type="relu", name="relu4_2")
+    #relu4_1 = mx.symbol.Activation(data=batchnorm2, act_type="relu", name="relu4_1")
+    #conv4_2 = mx.symbol.Convolution(
+    #    data=batchnorm1, kernel=(3, 3), pad=(1, 1), num_filter=512, name="conv4_2")
+    #relu4_2 = mx.symbol.Activation(data=conv4_2, act_type="relu", name="relu4_2")
     # conv4_3 = mx.symbol.Convolution(
     #     data=relu4_2, kernel=(3, 3), pad=(1, 1), num_filter=512, name="conv4_3")
     # relu4_3 = mx.symbol.Activation(data=conv4_3, act_type="relu", name="relu4_3")
@@ -130,11 +130,11 @@ def crnn(num_lstm_layer, seq_len, num_hidden, num_classes, num_label, dropout=0.
     # arg_shape, output_shape, aux_shape = flatten_out.infer_shape(data=(32,1,32,100))
     # print(output_shape)
     wordvec = mx.sym.SliceChannel(data=flatten_out, num_outputs=seq_len, squeeze_axis=1)
-    
+
     forward_hidden = []
     for seqidx in range(seq_len):
         hidden = wordvec[seqidx]
-        for i in range(num_lstm_layer): 
+        for i in range(num_lstm_layer):
           next_state = lstm(num_hidden, indata=hidden,
                             prev_state=last_states[2*i],
                             param=forward_param[i],
@@ -156,7 +156,7 @@ def crnn(num_lstm_layer, seq_len, num_hidden, num_classes, num_label, dropout=0.
           last_states[2*i + 1] = next_state
         backward_hidden.insert(0, hidden)
 
-        
+
     hidden_all = []
     for i in range(seq_len):
         hidden_all.append(mx.sym.Concat(*[forward_hidden[i], backward_hidden[i]], dim=1))

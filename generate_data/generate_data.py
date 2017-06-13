@@ -18,6 +18,7 @@ index = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8,
 
 chars = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
          "Y", "Z"];
+chars = chars[:10]
 
 def r(val):
     return int(np.random.random() * val)
@@ -91,7 +92,7 @@ def AddNoiseSingleChannel(single):
     diff = 255-single.max();
     noise = np.random.normal(0,1+r(6),single.shape);
     noise = (noise - noise.min())/(noise.max()-noise.min())
-    noise= diff*noise;
+    noise= diff*noise/8;
     noise= noise.astype(np.uint8)
     dst = single + noise
     return dst
@@ -104,16 +105,19 @@ def Addblur(img, val):
 
 class GenText:
     def __init__(self, font, font_size, counter):
-        self.font = ImageFont.truetype(font,font_size)
+        #self.font = ImageFont.truetype(font,font_size)
+        self.fonts = []
+        for f in os.listdir(font):
+            self.fonts.append(ImageFont.truetype(os.path.join(font, f),font_size))
         self.counter = counter
 
     def draw(self,val,data_shape1, data_shape2):
         bg_gray = r(256)
         text_gray = text_Gengray(bg_gray, 60)
-        text_position = random_scale(4,12)
+        text_position = random_scale(0,30)
         offset_left = int(np.random.random() * 30)
         offset_right = int(np.random.random() * 30)
-        offset_middle = 17
+        offset_middle = 4#17
         add_position = -1
         if self.counter > 4:
             add_number = np.random.randint(2)
@@ -126,7 +130,7 @@ class GenText:
         base = offset_left
         for i in range(counter):
             #offset_middle_add = random_pick([0,1],[0.8,0.2])*offset_middle
-            img[0: data_shape2, base : base + data_shape1]= GenCh(self.font,val[i], data_shape1, data_shape2, bg_gray, text_gray, text_position)
+            img[0: data_shape2, base : base + data_shape1]= GenCh(random.choice(self.fonts),val[i], data_shape1, data_shape2, bg_gray, text_gray, text_position)
             base += data_shape1
             if add_position == i:
                 base += offset_middle
@@ -134,36 +138,37 @@ class GenText:
 
     def generate(self,text, data_shape1, data_shape2):
         fg, bg_gray = self.draw(text.decode(encoding="utf-8"),data_shape1, data_shape2)
-        com = rot(fg,r(60)-30,fg.shape,30, bg_gray)
-        com = rotRandrom(com,10,(com.shape[1],com.shape[0]), bg_gray)
+        com = fg
+        #com = rot(fg,r(60)-30,fg.shape,30, bg_gray)
+        #com = rotRandrom(com,10,(com.shape[1],com.shape[0]), bg_gray)
         com = tfactor(com)
-        com = Addblur(com, 8)
-        #com = AddNoiseSingleChannel(com)
+        com = Addblur(com, 4)
+        com = AddNoiseSingleChannel(com)
         return com
-    
+
     def genTextString(self, counter):
         textStr = "";
         for idx in xrange(counter):
             textStr += chars[r(len(chars))]
 
         return textStr;
-        
+
 
 if __name__ == '__main__':
-    outputPath = "../data/train" 
-    #outputPath = "../data/test" 
+    outputPath = "../data/train"
+    outputPath = "../data/test"
     gt = []
     imgaePath = os.path.join(outputPath, 'text')
     num = 1000
-    font_size = 60
-    data_shape1 = 30
+    font_size = 36
+    data_shape1 = 24
     data_shape2 = 80
 
     if (not os.path.exists(imgaePath)):
         os.mkdir(imgaePath)
     sum = 0
     for counter in xrange(2,10):
-        G = GenText("./font/font.ttf", font_size, counter)
+        G = GenText("./fonts", font_size, counter)
         for i in xrange(num):
             textStr = G.genTextString(counter)
             print textStr

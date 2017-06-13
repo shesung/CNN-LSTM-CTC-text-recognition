@@ -1,0 +1,6 @@
+*.params
+*.json
+*.jpg
+*.pyc
+*.pkl
+*.log

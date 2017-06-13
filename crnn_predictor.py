@@ -2,9 +2,9 @@
 # coding=utf-8
 from __future__ import print_function
 import sys, os
-curr_path = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))
-sys.path.append("../../amalgamation/python/")
-sys.path.append("../../python/")
+mxnet_root = os.path.expanduser("~/github/mxnet")
+sys.path.append(os.path.join(mxnet_root, "amalgamation/python/"))
+sys.path.append(os.path.join(mxnet_root, "python/"))
 import argparse
 
 from mxnet_predict import Predictor
@@ -37,7 +37,7 @@ class lstm_ocr_model(object):
         init_h = [('l%d_init_h'%l, (self.batch_size, self.num_hidden)) for l in range(self.num_lstm_layer*2)]
         init_states = init_c + init_h
 
-        all_shapes = [('data', (batch_size, 1, self.data_shape[1], self.data_shape[0]))] + init_states + [('label', (self.batch_size, self.num_label))]
+        all_shapes = [('data', (self.batch_size, 1, self.data_shape[1], self.data_shape[0]))] + init_states + [('label', (self.batch_size, self.num_label))]
         all_shapes_dict = {}
         for _shape in all_shapes:
             all_shapes_dict[_shape[0]] = _shape[1]
@@ -48,7 +48,7 @@ class lstm_ocr_model(object):
     def forward_ocr(self, img):
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         img = cv2.resize(img, self.data_shape)
-        img = img.reshape((1, data_shape[1], data_shape[0]))
+        img = img.reshape((1, self.data_shape[1], self.data_shape[0]))
         img = np.multiply(img, 1/255.0)
         self.predictor.forward(data=img)
         prob = self.predictor.get_output(0)
@@ -96,11 +96,11 @@ if __name__ == '__main__':
     num_hidden = 256
     num_lstm_layer = 2
     data_shape = (100, 32)
-    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", 
+    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G",
         "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
     demo_img = args.img
 
-    _lstm_ocr_model = lstm_ocr_model(json_path, param_path, classes, data_shape, batch_size, 
+    _lstm_ocr_model = lstm_ocr_model(json_path, param_path, classes, data_shape, batch_size,
                                     num_label, num_hidden, num_lstm_layer)
     img = cv2.imread(demo_img)
     #img = cv2.bitwise_not(img)

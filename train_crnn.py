@@ -61,6 +61,8 @@ class OCRIter(mx.io.DataIter):
             for i in range(self.batch_size):
                 img_name = self.image_set_index[i + k*self.batch_size]
                 img = cv2.imread(os.path.join(self.data_path, img_name + '.jpg'), cv2.IMREAD_GRAYSCALE)
+                H = img.shape[0]
+                img = img[random.randint(0,20) : random.randint(H-20, H)]
                 #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
                 img = cv2.resize(img, self.data_shape)
                 img = img.reshape((1, data_shape[1], data_shape[0]))
@@ -82,11 +84,11 @@ class OCRIter(mx.io.DataIter):
             label_all = [mx.nd.array(label)]
             data_names = ['data'] + init_state_names
             label_names = ['label']
-            
-            
+
+
             data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
             yield data_batch
-    
+
     def reset(self):
         pass
 
@@ -95,7 +97,7 @@ class OCRIter(mx.io.DataIter):
         image_set_index = []
         list_dir = os.walk(self.data_path)
         for root, _, image_names in list_dir:
-            for name in image_names: 
+            for name in image_names:
                 image_set_index.append(name.split('.')[0])
         if shuffle:
             np.random.shuffle(image_set_index)
@@ -174,8 +176,9 @@ if __name__ == '__main__':
     momentum = 0.9
     num_label = 9
     data_shape = (100, 32)
-    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", 
+    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G",
         "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    classes = classes[:10]
     num_classes = len(classes) + 1
 
     contexts = [mx.context.gpu(0)]
@@ -206,13 +209,13 @@ if __name__ == '__main__':
     import logging
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=head)
-    
+
     logger.info('begin fit')
 
     model.fit(X=data_train, eval_data=data_val,
               eval_metric = mx.metric.np(Accuracy),
-              batch_end_callback=mx.callback.Speedometer(BATCH_SIZE, 50), logger = logger,
-              epoch_end_callback = mx.callback.do_checkpoint(prefix, 1))
+              batch_end_callback=mx.callback.Speedometer(BATCH_SIZE, 100), logger = logger,
+              epoch_end_callback = mx.callback.do_checkpoint(prefix, 10))
 
     model.save("crnnctc")
 
