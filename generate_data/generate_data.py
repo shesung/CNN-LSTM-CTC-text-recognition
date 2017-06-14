@@ -154,6 +154,33 @@ class GenText:
         return textStr;
 
 
+class GenTextLine(object):
+    def __init__(self, font_list, font_size=16):
+        self.fonts = []
+        for f in font_list:
+            self.fonts.append(ImageFont.truetype(f, font_size))
+        self.font_size = font_size
+
+    def generate(self, text_str):
+        bg_gray = r(256)
+        text_gray = text_Gengray(bg_gray, 60)
+        white_chars = 9-len(text_str)
+        offset_left = r(white_chars/2*self.font_size + 8)
+        offset_right = r(white_chars/2*self.font_size + 8)
+        offset_top = r(12) - 4
+        offset_bottom = r(12) - 4
+
+        font = random.choice(self.fonts)
+        cw, ch = font.getsize(text_str)
+        Img = Image.new("L", (offset_left+cw+offset_right, offset_top+ch+offset_bottom), bg_gray)
+        draw = ImageDraw.Draw(Img)
+        draw.text((offset_left, offset_top), text_str, text_gray, font=font)
+        img = np.array(Img)
+        img = Addblur(img, 3)
+        img = AddNoiseSingleChannel(img)
+        return img
+
+
 if __name__ == '__main__':
     outputPath = "../data/train"
     outputPath = "../data/test"

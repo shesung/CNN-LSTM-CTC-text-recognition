@@ -4,3 +4,4 @@
 *.pyc
 *.pkl
 *.log
+.ipynb_checkpoints/
