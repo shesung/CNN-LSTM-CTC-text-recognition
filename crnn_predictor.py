@@ -51,8 +51,15 @@ class lstm_ocr_model(object):
         img = cv2.resize(img, self.data_shape)
         img = img.reshape((1, self.data_shape[1], self.data_shape[0]))
         img = np.multiply(img, 1/255.0)
-        self.predictor.forward(data=img)
+        inputs = dict(data=img)
+        nd_zero =  np.ones((self.batch_size, self.num_hidden), dtype=np.float32)
+        for l in range(self.num_lstm_layer*2):
+            inputs['l%d_init_c'%l] = nd_zero
+            inputs['l%d_init_h'%l] = nd_zero
+        self.predictor.forward(**inputs)
         prob = self.predictor.get_output(0)
+        print(prob.shape) ###
+        print(prob[:4,:4]) ###
         label_list = []
         for p in prob:
             max_index = np.argsort(p)[::-1][0]
